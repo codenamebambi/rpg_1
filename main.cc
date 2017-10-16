@@ -148,6 +148,7 @@ loop_start:
 	while (true) {
 
 		at_cursor(g, m, w, e, l, c_x, c_y);
+		board_set();
 		always_print();
 		if (mode == EDITOR_MODE) {
 			print_editor_controls();
@@ -246,7 +247,7 @@ loop_start:
 					}
 					if (!check and ground.at(index(c_x, c_y)) < Rock)
 						level_entities.push_back(player(c_x, c_y));
-				} else if (ch == 'c') {
+				} else if (ch == 'C') {
 					mid.at(index(c_x, c_y)) = 0;
 					ground.at(index(c_x, c_y)) = Void;
 					weather.at(index(c_x, c_y)) = 0;
@@ -262,12 +263,91 @@ loop_start:
 							level_loot.erase(j++);
 						} else ++j;
 					}
+				} else if (ch == 'c') {
+					mid.at(index(c_x, c_y)) = 0;
+					auto i = level_entities.begin();
+					while (i != level_entities.end()) {
+						if ((*i).x == c_x and (*i).y == c_y) {
+							level_entities.erase(i++);
+						} else ++i;
+					}
+					auto j = level_loot.begin();
+					while (j != level_loot.end()) {
+						if ((*j).x == c_x and (*j).y == c_y) {
+							level_loot.erase(j++);
+						} else ++j;
+					}
+				} else if (ch == '`') {
+					print_console_out("Please enter a link");
+					int c_in = 0;
+					while (true) {
+						bool break_check =false;
+						ch = getch();
+						c_in = typing(ch);
+						if (c_in == 1)
+							;
+						else if (c_in == 2) {
+							string temp = console_input;
+							stringstream temp_stream;
+							int q = 0, w = 0;
+							temp_stream << temp;
+							temp_stream >> temp >> q >> w;
+							if (!temp_stream) {
+								print_console_out("Invalid input");
+								print_console_in("");
+									break_check=true;
+							}
+							for (auto i : temp) {
+								if (!isalnum(i)) {
+									print_console_out("Invalid input");
+									print_console_in("");
+									break_check=true;
+									break;
+								}
+							}
+							if(break_check) break;
+							linked.push_back(console_input);
+							temp = "Link " + to_string(linked.size()) + " added";
+							print_console_out(temp.c_str());
+							console_input = "";
+							print_console_in("");
+							break;
+						} else
+							break;
+						print_console_in(console_input);
+						refresh();
+					}
+				} else if (ch == 'N') {
+					print_console_out("Please enter a name");
+					int c_in = 0;
+					while (true) {
+						int break_check=false;
+						ch = getch();
+						c_in = typing(ch);
+						if (c_in == 1)
+							;
+						else if (c_in == 2) {
+							for (auto i : console_input) {
+								if (!isalnum(i) || i==' ') {
+									print_console_out("Invalid input");
+									print_console_in("");
+									break_check=true;
+									break;
+								}
+							}
+							if(break_check)break;
+							current_map_name = console_input;
+							print_console_out("Name set");
+							print_console_in("");
+							break;
+						} else
+							break;
+						print_console_in(console_input);
+						refresh();
+					}
+
 				}
 			}
-			board_set();
-			print_board();
-			refresh();
-
 		}
 	}
 	endwin();

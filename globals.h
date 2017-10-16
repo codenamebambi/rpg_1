@@ -177,6 +177,16 @@ int Y_MAX = 60;
 int c_x = 0;
 int c_y = 0;
 
+string current_map_name;
+
+vector<string> linked;
+
+string console_input;
+string console_output;
+
+
+
+
 bool game_on = false;
 
 vector<int> ground;

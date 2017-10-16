@@ -6,7 +6,7 @@ using namespace std;
 class Map {
   public:
 	string name;
-	string linked;
+	vector<string> Linked; // format for linked strings is: "next_level exit_x exit_y" or "null"
 	int SIZEX = 0;
 	int SIZEY = 0; //no _ to differentiate
 	vector<int> Ground;
@@ -22,12 +22,14 @@ class Map {
 	friend bool operator<(const Map &lhs, const Map &rhs) {
 		return lhs.name < rhs.name;
 	}
-	//segfaults
+	/*
+	 * segfaults
 	Map operator=(Map &rhs) {
 		this->SIZEX = rhs.SIZEX;
 		this->SIZEY = rhs.SIZEY;
-		this->linked = rhs.linked;
 		this->name = rhs.name;
+		for (auto i : rhs.Linked)
+			this->Linked.push_back(i);
 		for (auto i : rhs.Ground)
 			this->Ground.push_back(i);
 		for (auto i : rhs.Mid)
@@ -39,7 +41,12 @@ class Map {
 		this->Entities.resize(0);
 		this->Entities.merge(rhs.Entities);
 	}
+	*/
 	friend ostream& operator<<(ostream& os, const Map &rhs) {
+		os << rhs.name << endl;
+		os << rhs.Linked.size() << endl;
+		for (auto i : rhs.Linked)
+			os << i << endl;
 		os << rhs.SIZEX << endl;
 		os << rhs.SIZEY << endl;
 		for (auto i : rhs.Ground)
@@ -56,6 +63,12 @@ class Map {
 			os << i;
 	}
 	friend istream& operator>>(istream& is, Map &rhs) {
+		int temp = 0;
+		is >> rhs.name;
+		is >> temp;
+		rhs.Linked.resize(temp);
+		for (auto i : rhs.Linked)
+			is >> i ;
 		is >> rhs.SIZEX;
 		is >> rhs.SIZEY;
 		rhs.Ground.resize(rhs.SIZEX * rhs.SIZEY);
@@ -68,7 +81,6 @@ class Map {
 			is >> i;
 		for (auto && i : rhs.Weather)
 			is >> i;
-		int temp = 0;
 		is >> temp;
 		rhs.Loot.resize(temp);
 		for (auto && i : rhs.Loot)
@@ -79,6 +91,10 @@ class Map {
 			is >> i;
 	}
 	void Map_set() {
+		this->name = current_map_name;
+		this->Linked.resize(0);
+		for (auto i : linked)
+			this->Linked.push_back(i);
 		this->Loot.resize(0);
 		this->Entities.resize(0);
 		for (auto i : level_loot) {
@@ -100,6 +116,10 @@ class Map {
 			this->Weather.push_back(i);
 	}
 	void level_set() {
+		current_map_name = this->name;
+		linked.resize(0);
+		for (auto i : this->Linked)
+			linked.push_back(i);
 		level_loot.resize(0);
 		level_entities.resize(0);
 		ground.resize(0);
@@ -135,7 +155,7 @@ void Save(Map &map_save) {
 		return;
 	} else {
 		map_save.Map_set();
-		map_save.name = s;
+//		map_save.name = s;
 		out << map_save;
 		cout << "File " << s << " saved" << endl;
 	}
@@ -157,6 +177,36 @@ bool Load(string &s) {
 	return true;
 }
 
+
+
+bool Load_link(int &in_x, int &in_y) {
+	string n;
+	int x = 0, y = 0;
+	stringstream input;
+	for (auto i : linked) {
+		input << i;
+		while (true) {
+			input >> n >> x >> y;
+			if (!input)
+				return false;
+		}
+		if (x == in_x && y == in_y)
+			break;
+	}
+	if (!(x == in_x && y == in_y))
+		return false;
+	Map map_save;
+	fstream in;
+	in.open(n);
+	if (!in.is_open()) {
+		return false;;
+	} else {
+		in >> map_save;
+		map_save.level_set();
+	}
+	in.close();
+	return true;
+}
 
 
 

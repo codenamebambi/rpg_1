@@ -47,6 +47,8 @@ void print_board() {
 
 	}
 }
+void print_console_in(string);
+void print_console_out(string);
 void at_cursor(string & n_g, string & n_m, string & n_w, string & n_e, string & n_l, int n_c_x, int n_c_y) {
 	n_g = "Ground: ";
 	n_m = "Mid: ";
@@ -115,8 +117,6 @@ void at_cursor(string & n_g, string & n_m, string & n_w, string & n_e, string & 
 			break;
 		}
 	}
-	while (n_e.size() <= 18)
-		n_e += " ";
 	n_l += "False";
 	for (auto i : level_loot) {
 		if (i.x == n_c_x and i.y == n_c_y) {
@@ -124,22 +124,17 @@ void at_cursor(string & n_g, string & n_m, string & n_w, string & n_e, string & 
 			break;
 		}
 	}
-	while (n_l.size() <= 10) {
+	while (n_e.size() < 19)
+		n_e += " ";
+	while (n_l.size() < 19)
 		n_l += " ";
-	}
-
-	//these while loops make sure to put extra spaces to overwrite leftover characters if the string is shorter than a previous one
-	while (n_g.size() < 18) {
-		n_g += " ";
-	}
-	while (n_m.size() < 13) {
-		n_m += " ";
-	}
-	while (n_w.size() < 20) {
+	while (n_w.size() < 19)
 		n_w += " ";
-	}
+	while (n_m.size() < 19)
+		n_m += " ";
+	while (n_g.size() < 19)
+		n_g += " ";
 
-	//will need to add while loops for space for loot and entities once entities are decided and we have a max length
 }
 
 void print_editor_controls() {
@@ -151,29 +146,36 @@ void print_editor_controls() {
 	mvprintw(16, SIZE_Y + 2, printer.c_str());
 	printer = "           o = Oil | O = Ooze | b = Blood | w = Water | x = Caltrops | r = Rock | - = Door";
 	mvprintw(17, SIZE_Y + 2, printer.c_str());
-	mvprintw(18, SIZE_Y + 2, "Adding entities: ");
-	mvprintw(19, SIZE_Y + 2, "Q = Player(1 recomended) | ");
-	printer = "#:" + to_string(level_entities.size());
-	mvprintw(20, SIZE_Y + 2, printer.c_str());
-	mvprintw(21, SIZE_Y + 2, "Enter c to clear everything on that spot");
-	mvprintw(22, SIZE_Y + 2, "Enter \"|\" to save the level");
+	printer = "Weather types:";
+	mvprintw(18, SIZE_Y + 2, printer.c_str());
+	mvprintw(19, SIZE_Y + 2, "Adding entities: ");
+	mvprintw(20, SIZE_Y + 2, "Q = Player(1 recomended) | ");
+	mvprintw(22, SIZE_Y + 2, "Enter c to clear mid, C to clear all");
+	mvprintw(23, SIZE_Y + 2, "Enter \"`\" to link maps, formatted: \"name adjacent_x adjacent_y\"");
+	mvprintw(24, SIZE_Y + 2, "Enter N to name the map,  \"|\" to save the map");
+	printer = "Debug info: " + to_string(level_entities.size());
+	mvprintw(26, SIZE_Y + 2, printer.c_str());
 	attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 
 }
 
 
 void always_print() {
-
-
+	print_board();
 	attron(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 	mvprintw(0, SIZE_Y + 2, "Use arrow keys to move the cursor around");
 	mvprintw(3, SIZE_Y + 2, "s = Steam |");
 	mvprintw(9, SIZE_Y + 2, "Some ground colors may be changed if the item on it is assigned the same color so be concious of it");
-	mvprintw(SIZE_X + 1, 1, g.c_str());
-	mvprintw(SIZE_X + 2, 1, m.c_str());
-	mvprintw(SIZE_X + 3, 1, w.c_str());
-	mvprintw(SIZE_X + 4, 1, e.c_str());
-	mvprintw(SIZE_X + 5, 1, l.c_str());
+	string temp = "Map: " + current_map_name + " |  X: " + to_string(c_x) + " Y: " + to_string(c_y);
+	while (temp.size() < SIZE_Y)
+		temp += " ";
+	mvprintw(SIZE_X + 1, 1, temp.c_str());
+	mvprintw(SIZE_X + 2, 1, g.c_str());
+	mvprintw(SIZE_X + 3, 1, m.c_str());
+	mvprintw(SIZE_X + 4, 1, w.c_str());
+	mvprintw(SIZE_X + 5, 1, e.c_str());
+	mvprintw(SIZE_X + 6, 1, l.c_str());
+
 	mvprintw(12, SIZE_Y + 2, "Controls:");
 	attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 
@@ -244,4 +246,54 @@ void always_print() {
 		mvprintw(SIZE_X, i, "*");
 	}
 	attroff(COLOR_PAIR(cpair(COLOR_YELLOW, COLOR_BLACK)));
+	print_console_in(console_input);
+	print_console_out(console_output);
+	refresh();
 }
+//returns 1 when continuing to work and 3 if '\n' is read and 2 if the esc key is pressed
+int typing(int input) {
+	if (isalnum(input) || input == ' ') {
+		console_input.push_back(char(input));
+		if (console_input.size() > SIZE_Y)
+			console_input.pop_back();
+		return 1;
+	} else if (input == KEY_BACKSPACE) {
+		if (console_input.size() > 0) {
+			console_input.pop_back();
+			console_input.push_back(' ');
+			print_console_in(console_input);
+			console_input.pop_back();
+		}
+		return 1;
+	} else if (input == '\n') {
+		return 2;
+	} else if (input == ERR)
+		return 1;
+	return 0;
+}
+
+void print_console_in(string input) {
+	attron(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
+	for (int i = 0; i < console_input.size(); i++)
+		console_input.at(i) = ' ';
+	mvprintw(SIZE_X + 10 , 1, console_input.c_str());
+	console_input = input;
+	mvprintw(SIZE_X + 10 , 1, console_input.c_str());
+	attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
+}
+
+
+
+void print_console_out(string output) {
+	attron(COLOR_PAIR(cpair(COLOR_BLACK, COLOR_WHITE)));
+	for (int i = 0; i < console_output.size(); i++) {
+		console_output.at(i) = ' ';
+	}
+	mvprintw(SIZE_X + 9 , 1, console_output.c_str());
+	console_output = output;
+	mvprintw(SIZE_X + 9 , 1, console_output.c_str());
+	attroff(COLOR_PAIR(cpair(COLOR_BLACK, COLOR_WHITE)));
+}
+
+
+
