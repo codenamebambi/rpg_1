@@ -1,6 +1,6 @@
 #pragma once
 #include <ncurses.h>
-#include "globals.h"
+#include "general.h"
 using namespace std;
 
 
@@ -23,6 +23,7 @@ short cpair(short wanted_fore, short wanted_back) {
 		}
 	}
 }
+
 short cpair(int x) {
 	short fore, back;
 
@@ -297,7 +298,7 @@ short cpair(int x) {
 		fore = COLOR_WHITE;
 		back = COLOR_BLACK;
 	}
-	cpair(fore, back);
+	return cpair(fore, back);
 }
 
 

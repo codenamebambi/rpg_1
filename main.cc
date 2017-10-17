@@ -1,11 +1,104 @@
-#include "globals.h"
+#include "general.h"
 #include "colors.h"
 #include "entity.h"
 #include "board.h"
 #include "print.h"
 #include "save.h"
-#include "functions.h"
 using namespace std;
+
+
+void startup() {
+	int x, y;
+	string user_input;
+	cout << "Please enter a mode, either Game or Editor" << endl;
+	cin >> user_input;
+	while (true) {
+		for (int i = 0; i < user_input.size(); i++) {
+			user_input.at(i) = toupper(user_input.at(i));
+		}
+		if (user_input == "GAME") {
+			cout << "The game is still in development try again later" << endl;
+//			mode=GAME_MODE;
+//			break;
+		}
+		if (user_input == "EDITOR") {
+			mode = EDITOR_MODE;
+			break;
+		} else {
+			cout << "Please enter a valid mode" << endl;
+			cin >> user_input;
+		}
+	}
+	if (mode == EDITOR_MODE) {
+		cout << "Type Load if you are loading an existing map, type New if you are making one from scratch" << endl;
+		cin >> user_input;
+		while (true) {
+			for (int i = 0; i < user_input.size(); i++) {
+				user_input.at(i) = toupper(user_input.at(i));
+			}
+loop_start:
+			if (user_input == "LOAD") {
+				cout << "Please enter the name of the level you wish to load" << endl;
+				cin >> user_input;
+				while (true) {
+					bool L = false;
+					if (user_input == "n" || user_input == "N") {
+						user_input = "NEW";
+						goto loop_start;
+					} else if (user_input == "q" || user_input == "Q") {
+						exit(1);
+					} else L = Load(user_input);
+					if (!L) {
+						cout << "Please enter a valid level name, n to make a new level, or type q to quit" << endl;
+						cin >> user_input;
+					} else {
+						break;
+					}
+				}
+				break;
+			} else if (user_input == "NEW") {
+
+				cout << "Please enter the board size formatted like so: X_max  Y_Max " << endl;
+				cin >> y >> x;
+
+				while (true) {
+					if (x < 10  or  y < 25 or !cin) {
+						string s;
+						cin.clear();
+						getline(cin, s);
+						cout << "Please Enter Valid maxes (X_min=25, Y_min=10): " << endl;
+						cin >> y >> x;
+
+					} else if (x > X_MAX or y > Y_MAX) {
+						if (x > Y_MAX) {
+							cout << "Over max x length, setting to X_max to max possible" << endl;
+							SIZE_X = X_MAX;
+						}
+						if (y > Y_MAX) {
+							cout << "Over max y length, setting to Y_max to max possible" << endl;
+							SIZE_Y = Y_MAX;
+						}
+						break;
+					} else {
+						SIZE_X = x;
+						SIZE_Y = y;
+						break;
+					}
+				}
+				board.resize(SIZE_X * SIZE_Y);
+				mid.resize(SIZE_X * SIZE_Y);
+				ground.resize(SIZE_X * SIZE_Y);
+				weather.resize(SIZE_X * SIZE_Y);
+				initialize_arrays();
+				break;
+			} else {
+				cout << "Please enter a valid option" << endl;
+				cin >> user_input;
+			}
+		}
+	}
+}
+
 
 
 int main() {
@@ -131,10 +224,10 @@ int main() {
 					Save(current_map);
 					return 0;
 				} else if (ch == '1') {
-					entity_push(player(c_x, c_y)); //needs to be entity_push(entity(c_x,c_y))
+					entity_push(entity(c_x, c_y)); //needs to be entity_push(entity(c_x,c_y))
 				} else if (ch == 'Q') {
-					current_player.x == c_x;
-					current_player.y == c_y;
+						current_player.x = c_x;
+						current_player.y = c_y;
 				} else if (ch == 'C') {
 					mid.at(index(c_x, c_y)) = 0;
 					ground.at(index(c_x, c_y)) = Void;

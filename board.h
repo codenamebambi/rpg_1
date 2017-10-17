@@ -1,15 +1,30 @@
 #pragma once
-#include "globals.h"
+#include "general.h"
 #include "entity.h"
-#include "functions.h"
 using namespace std;
 
 
 
+
+void clear_lists_at_cursor() {
+	auto i = level_entities.begin();
+	while (i != level_entities.end()) {
+		if ((*i).x == c_x and (*i).y == c_y) {
+			level_entities.erase(i++);
+		} else ++i;
+	}
+	auto j = level_loot.begin();
+	while (j != level_loot.end()) {
+		if ((*j).x == c_x and (*j).y == c_y) {
+			level_loot.erase(j++);
+		} else ++j;
+	}
+}
+
 void weather_check() {
 
 }
-
+//needs to be reworked to deploy in ticks and apply burns more accurately
 void fire_spread(int x, int y) {
 	if (mid.at(index(x, y)) == Fire and ground.at(index(x, y)) == Grass) {
 		ground.at(index(x, y)) = Dirt;
@@ -162,14 +177,16 @@ void fire_spread(int x, int y) {
 		}
 
 	}
-	if (mid.at(index(x, y)) == Entity) {
-		for (auto i : level_entities) {
-			if (i.x == x and i.y == y) {
-				i.temp_burn();
-				break;
-			}
+//	if (mid.at(index(x, y)) == Entity) {
+	for (auto i : level_entities) {
+		if (i.x == x and i.y == y) {
+			i.temp_burn();
+			break;
 		}
 	}
+//	}
+	if (current_player.x == x and current_player.y == y)
+		current_player.temp_burn();
 }
 void place_doors(int x, int y) {
 	if (x + 1 < SIZE_X and x - 1 > 0 and mid.at(index(x + 1, y)) == Wall and mid.at(index(x - 1, y)) == Wall)
@@ -195,7 +212,6 @@ void board_set() {
 				board.at(index(i, j)) =  Caltrops_char;
 			} else if (mid.at(index(i, j)) == Door) {
 				place_doors(i, j);
-				//board.at(index(i, j)) =  DoorNS_char;
 			} else if (mid.at(index(i, j)) == Water) {
 				board.at(index(i, j)) =  Water_char;
 			} else if (mid.at(index(i, j)) == Wall) {
@@ -218,6 +234,7 @@ void board_set() {
 	for (auto i : level_entities) {
 		board.at(index(i.x, i.y)) = i.visual;
 	}
+	board.at(index(current_player.x, current_player.y)) = current_player.visual;
 }
 
 
@@ -262,6 +279,8 @@ void global_entity_checks() {//also checks loot
 			level_loot.erase(j++);
 		} else ++j;
 	}
+	if (current_player.hp <= 0)
+		;//do something
 }
 
 

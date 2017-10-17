@@ -196,5 +196,41 @@ vector<int> mid;
 vector<int> weather;
 vector<char> board;
 
+
+
+
+void initialize_arrays() {
+	for (int i = 0; i < SIZE_Y * SIZE_X; i++) {
+		board.at(i) = ' ';
+		mid.at(i) = 0;
+		ground.at(i) = Dirt;
+		weather.at(i) = 0;
+	}
+}
+
+
+int index(int x, int y) {
+	while (x < 0)x += SIZE_X;
+	while (y < 0)y += SIZE_Y;
+	if (x >= SIZE_X)x %= SIZE_X;
+	if (y >= SIZE_Y)y %= SIZE_Y;
+	return (x * SIZE_Y + y);
+}
+
+
+
 string g, m, w, e, l; //ground mid weather entity
+
+
+void wait_ticks(int ticks) {
+	clock_t start = clock();
+	while ((clock() - start) < ticks)
+		; //Do nothing
+}
+
+
+
+
+
+
 

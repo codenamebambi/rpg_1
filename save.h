@@ -1,11 +1,10 @@
 #pragma once
-#include "globals.h"
+#include "general.h"
 #include "board.h"
 #include "entity.h"
+#include "print.h"
 using namespace std;
 
-class player;
-player current_player;
 
 
 class Map {
@@ -73,8 +72,13 @@ class Map {
 		is >> rhs.name;
 		is >> temp;
 		rhs.Linked.resize(temp);
-		for (auto i : rhs.Linked)
-			is >> i ;
+		for (auto & i : rhs.Linked) {
+			for (int j = 0; j < 3; j++) {
+				string temp_input;
+				is >> temp_input;
+				i += temp_input;
+			}
+		}
 		is >> rhs.Back_link;
 		is >> rhs.SIZEX;
 		is >> rhs.SIZEY;
@@ -224,3 +228,150 @@ bool Load_link(int &in_x, int &in_y) {
 
 
 
+void modify_map_name() {
+	print_console_out("Please enter a name");
+	int c_in = 0;
+	while (true) {
+		int break_check = false;
+		int ch = getch();
+		c_in = typing(ch);
+		if (c_in == 1)
+			;
+		else if (c_in == 2) {
+			for (auto i : console_input) {
+				if (!isalnum(i) || i == ' ') {
+					print_console_out("Invalid input");
+					print_console_in("");
+					break_check = true;
+					break;
+				}
+			}
+			if (break_check)break;
+			current_map_name = console_input;
+			print_console_out("Name set");
+			print_console_in("");
+			break;
+		} else
+			break;
+		print_console_in(console_input);
+		refresh();
+	}
+}
+
+void modify_map_links() {
+	print_console_out("Please enter a link");
+	int c_in = 0;
+	while (true) {
+		bool break_check = false;
+		int ch = getch();
+		c_in = typing(ch);
+		if (c_in == 1)
+			;
+		else if (c_in == 2) {
+			string temp = console_input;
+			stringstream temp_stream;
+			int q = 0, w = 0;
+			temp_stream << temp;
+			temp_stream >> temp >> q >> w;
+			if (!temp_stream || !temp_stream.eof()) {
+				print_console_out("Invalid input");
+				print_console_in("");
+				break_check = true;
+			}
+			for (auto i : temp) {
+				if (!isalnum(i)) {
+					print_console_out("Invalid input");
+					print_console_in("");
+					break_check = true;
+					break;
+				}
+			}
+			if (break_check) break;
+			linked.push_back(console_input);
+			temp = "Link " + to_string(linked.size()) + " added";
+			print_console_out(temp.c_str());
+			print_console_in("");
+			break;
+		} else
+			break;
+		print_console_in(console_input);
+		refresh();
+	}
+}
+
+void remove_link() {
+	print_console_out("Type yes to remove last link");
+	int c_in = 0;
+	while (true) {
+		bool break_check = false;
+		int ch = getch();
+		c_in = typing(ch);
+		if (c_in == 1)
+			;
+		else if (c_in == 2) {
+			string temp;
+			for (auto &i : console_input)
+				i = toupper(i);
+			if (console_input == "YES") {
+				linked.pop_back();
+				temp = "Link " + to_string(linked.size() + 1) + " removed";
+			} else
+				temp = "Link " + to_string(linked.size()) + " left alone";
+			print_console_out(temp.c_str());
+			print_console_in("");
+			break;
+		} else
+			break;
+		print_console_in(console_input);
+		refresh();
+	}
+}
+
+
+
+
+void modify_back_link() {
+	print_console_out("Please enter a link");
+	int c_in = 0;
+	while (true) {
+		bool break_check = false;
+		int ch = getch();
+		c_in = typing(ch);
+		if (c_in == 1)
+			;
+		else if (c_in == 2) {
+			string temp = console_input;
+			stringstream temp_stream;
+			temp_stream << temp;
+			temp_stream >> temp;
+			if (!temp_stream) {
+				print_console_out("Invalid input");
+				print_console_in("");
+				break_check = true;
+			}
+			for (auto i : temp) {
+				if (!isalnum(i)) {
+					print_console_out("Invalid input");
+					print_console_in("");
+					break_check = true;
+					break;
+				}
+			}
+			if (break_check) break;
+			back_link = console_input;
+			temp = "Back link set";
+			print_console_out(temp.c_str());
+			console_input = "";
+			print_console_in("");
+			break;
+		} else
+			break;
+		print_console_in(console_input);
+		refresh();
+	}
+
+}
+
+
+void modify_entities() {
+}

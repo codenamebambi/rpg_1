@@ -1,7 +1,8 @@
 #pragma once
-#include "globals.h"
+#include "general.h"
 #include "entity.h"
 #include "board.h"
+#include "colors.h"
 using namespace std;
 
 
@@ -41,6 +42,12 @@ void print_board() {
 					mvaddch(i, j, k.visual);
 				}
 			}
+			if(current_player.x == i and current_player.y == j){
+				attron(COLOR_PAIR(cpair(Entity | ground.at(index(i,j)))));
+				attron(A_BOLD);
+				mvaddch(i,j,current_player.visual);
+			}
+
 			attroff(COLOR_PAIR(cpair(color)));
 			attroff(A_UNDERLINE | A_BOLD);
 		}
@@ -111,11 +118,16 @@ void at_cursor(string & n_g, string & n_m, string & n_w, string & n_e, string & 
 		n_w += "Clear";
 	}
 	n_e += "None";
+	if(current_player.x==n_c_x and current_player.y==n_c_y){
+		n_e = "Entity: "+current_player.type;
+		}
+	else{
 	for (auto i : level_entities) {
 		if (i.x == n_c_x and i.y == n_c_y) {
 			n_e = "Entity: " + i.type;
 			break;
 		}
+	}
 	}
 	n_l += "False";
 	for (auto i : level_loot) {
@@ -155,9 +167,14 @@ void print_editor_controls() {
 	mvprintw(24, SIZE_Y + 2, "Enter N to name the map,  \"|\" to save the map");
 	printer = "Debug info: " + to_string(level_entities.size());
 	mvprintw(26, SIZE_Y + 2, printer.c_str());
-	mvprintw(27 + linked.size() , SIZE_Y + 2, "                                                             ");
+	printer = "                                                            ";
+	if (linked.size() == 0)
+		printer = "Back link: " + back_link;
+	mvprintw(27 + linked.size() , SIZE_Y + 2, printer.c_str());
 	for (int i = 0; i < linked.size(); i++) {
 		printer = "Link " + to_string(i + 1) + ": " + linked.at(i);
+		if (i == 0)
+			printer += " | Back link: " + back_link;
 		mvprintw(27 + i, SIZE_Y + 2, printer.c_str());
 	}
 	attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));

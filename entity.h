@@ -1,5 +1,5 @@
 #pragma once
-#include "globals.h"
+#include "general.h"
 #include "colors.h"
 using namespace std;
 int index(int, int);
@@ -573,51 +573,69 @@ class player: public entity {
 	player() {
 		type = "You";
 	}
-/*	player & operator=(const player &rhs){
-		this->type = rhs.type;
-		this->x = rhs.x  ;
-		this->y = rhs.y;
-		this->visual = rhs.visual  ;
-		this-> color = rhs.color  ;
-		this->status = rhs.status  ;
-		this->resistance = rhs.resistance  ;
-		this->weapon_inventory = rhs.weapon_inventory  ;
-		this->armor_inventory = rhs.armor_inventory  ;
-		this->current_weapon = rhs.current_weapon  ;
-		this->current_armor = rhs.current_armor  ;
-		this->msc_inventory = rhs.msc_inventory  ;
-		this->spells = rhs.spells  ;
-		this->skills = rhs.skills  ;
-		this->drops = rhs.drops;
-		this->potions = rhs.potions  ;
-		this->mana_pots = rhs.mana_pots  ;
-		this->weak_food = rhs.weak_food  ;
-		this->food = rhs.food  ;
-		this->good_food = rhs.good_food  ;
-		this->msc_pots = rhs.msc_pots  ;
-		this->arrows = rhs.arrows  ;
-		this->bandages = rhs.bandages  ;
-		this->has_key = rhs.has_key  ;
-		this->turns_poisoned = rhs.turns_poisoned  ;
-		this->turns_on_fire = rhs.turns_on_fire  ;
-		this->dead = rhs.dead  ;
-		this->current_attack = rhs.current_attack  ;
-		this->current_defense = rhs.current_defense  ;
-		this->attack_mod = rhs.attack_mod  ;
-		this->evasivness = rhs.evasivness  ;
-		this->accuracy = rhs.accuracy  ;
-		this->hp_max = rhs.hp_max  ;
-		this->mana_max = rhs.mana_max  ;
-		this->hunger = rhs.hunger  ;
-		this->mana = rhs.mana  ;
-		this->hp = rhs.hp  ;
-		this->level = rhs.level  ;
-		this->range = rhs.range  ;
-		this->xp = rhs.xp  ;
-		this->level_up_xp = rhs.level_up_xp  ;
-	}
-*/
+	/*	player & operator=(const player &rhs){
+			this->type = rhs.type;
+			this->x = rhs.x  ;
+			this->y = rhs.y;
+			this->visual = rhs.visual  ;
+			this-> color = rhs.color  ;
+			this->status = rhs.status  ;
+			this->resistance = rhs.resistance  ;
+			this->weapon_inventory = rhs.weapon_inventory  ;
+			this->armor_inventory = rhs.armor_inventory  ;
+			this->current_weapon = rhs.current_weapon  ;
+			this->current_armor = rhs.current_armor  ;
+			this->msc_inventory = rhs.msc_inventory  ;
+			this->spells = rhs.spells  ;
+			this->skills = rhs.skills  ;
+			this->drops = rhs.drops;
+			this->potions = rhs.potions  ;
+			this->mana_pots = rhs.mana_pots  ;
+			this->weak_food = rhs.weak_food  ;
+			this->food = rhs.food  ;
+			this->good_food = rhs.good_food  ;
+			this->msc_pots = rhs.msc_pots  ;
+			this->arrows = rhs.arrows  ;
+			this->bandages = rhs.bandages  ;
+			this->has_key = rhs.has_key  ;
+			this->turns_poisoned = rhs.turns_poisoned  ;
+			this->turns_on_fire = rhs.turns_on_fire  ;
+			this->dead = rhs.dead  ;
+			this->current_attack = rhs.current_attack  ;
+			this->current_defense = rhs.current_defense  ;
+			this->attack_mod = rhs.attack_mod  ;
+			this->evasivness = rhs.evasivness  ;
+			this->accuracy = rhs.accuracy  ;
+			this->hp_max = rhs.hp_max  ;
+			this->mana_max = rhs.mana_max  ;
+			this->hunger = rhs.hunger  ;
+			this->mana = rhs.mana  ;
+			this->hp = rhs.hp  ;
+			this->level = rhs.level  ;
+			this->range = rhs.range  ;
+			this->xp = rhs.xp  ;
+			this->level_up_xp = rhs.level_up_xp  ;
+		}
+	*/
 };
 
 
+player current_player;
+
+
+void entity_push(entity input) {
+	bool check_if_occupied = false;	
+	if(current_player.x== c_x and current_player.y==c_y)
+		check_if_occupied=true;
+	else{ 
+	for (auto i : level_entities) {
+		if (i.x == c_x and i.y == c_y) {
+			check_if_occupied = true;
+			break;
+		}
+	}
+	}
+	if (!check_if_occupied and ground.at(index(c_x, c_y)) < Rock)
+		level_entities.push_back(input);
+}
 
