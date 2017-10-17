@@ -155,6 +155,11 @@ void print_editor_controls() {
 	mvprintw(24, SIZE_Y + 2, "Enter N to name the map,  \"|\" to save the map");
 	printer = "Debug info: " + to_string(level_entities.size());
 	mvprintw(26, SIZE_Y + 2, printer.c_str());
+	mvprintw(27 + linked.size() , SIZE_Y + 2, "                                                             ");
+	for (int i = 0; i < linked.size(); i++) {
+		printer = "Link " + to_string(i + 1) + ": " + linked.at(i);
+		mvprintw(27 + i, SIZE_Y + 2, printer.c_str());
+	}
 	attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 
 }

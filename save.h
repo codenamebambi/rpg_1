@@ -1,14 +1,21 @@
+#pragma once
 #include "globals.h"
 #include "board.h"
 #include "entity.h"
 using namespace std;
 
+class player;
+player current_player;
+
+
 class Map {
   public:
-	string name;
+	string name = "NULL";
 	vector<string> Linked; // format for linked strings is: "next_level exit_x exit_y" or "null"
+	string Back_link = "NULL";
 	int SIZEX = 0;
 	int SIZEY = 0; //no _ to differentiate
+	player P;
 	vector<int> Ground;
 	vector<int> Weather;
 	vector<int> Mid;
@@ -22,31 +29,30 @@ class Map {
 	friend bool operator<(const Map &lhs, const Map &rhs) {
 		return lhs.name < rhs.name;
 	}
-	/*
-	 * segfaults
+	//segaults last time i checked;
 	Map operator=(Map &rhs) {
 		this->SIZEX = rhs.SIZEX;
 		this->SIZEY = rhs.SIZEY;
 		this->name = rhs.name;
-		for (auto i : rhs.Linked)
+		for (const auto &i : rhs.Linked)
 			this->Linked.push_back(i);
-		for (auto i : rhs.Ground)
+		for (const auto &i : rhs.Ground)
 			this->Ground.push_back(i);
-		for (auto i : rhs.Mid)
+		for (const auto &i : rhs.Mid)
 			this->Mid.push_back(i);
-		for (auto i : rhs.Weather)
+		for (const auto &i : rhs.Weather)
 			this->Weather.push_back(i);
 		this->Loot.resize(0);
 		this->Loot.merge(rhs.Loot);
 		this->Entities.resize(0);
 		this->Entities.merge(rhs.Entities);
 	}
-	*/
 	friend ostream& operator<<(ostream& os, const Map &rhs) {
 		os << rhs.name << endl;
 		os << rhs.Linked.size() << endl;
 		for (auto i : rhs.Linked)
 			os << i << endl;
+		os << rhs.Back_link << endl;
 		os << rhs.SIZEX << endl;
 		os << rhs.SIZEY << endl;
 		for (auto i : rhs.Ground)
@@ -69,32 +75,35 @@ class Map {
 		rhs.Linked.resize(temp);
 		for (auto i : rhs.Linked)
 			is >> i ;
+		is >> rhs.Back_link;
 		is >> rhs.SIZEX;
 		is >> rhs.SIZEY;
 		rhs.Ground.resize(rhs.SIZEX * rhs.SIZEY);
 		rhs.Mid.resize(rhs.SIZEX * rhs.SIZEY);
 		rhs.Weather.resize(rhs.SIZEX * rhs.SIZEY);
 		board.resize(rhs.SIZEX * rhs.SIZEY);
-		for (auto && i : rhs.Ground)
+		for (auto & i : rhs.Ground)
 			is >> i;
-		for (auto && i : rhs.Mid)
+		for (auto & i : rhs.Mid)
 			is >> i;
-		for (auto && i : rhs.Weather)
+		for (auto & i : rhs.Weather)
 			is >> i;
 		is >> temp;
 		rhs.Loot.resize(temp);
-		for (auto && i : rhs.Loot)
+		for (auto & i : rhs.Loot)
 			is >> i; //loot and entity ostreams end in an endl
 		is >> temp;
 		rhs.Entities.resize(temp);
-		for (auto && i : rhs.Entities)
+		for (auto & i : rhs.Entities)
 			is >> i;
 	}
 	void Map_set() {
 		this->name = current_map_name;
+		this->P = current_player;
 		this->Linked.resize(0);
 		for (auto i : linked)
 			this->Linked.push_back(i);
+		this->Back_link = back_link;
 		this->Loot.resize(0);
 		this->Entities.resize(0);
 		for (auto i : level_loot) {
@@ -117,9 +126,11 @@ class Map {
 	}
 	void level_set() {
 		current_map_name = this->name;
+		current_player = this->P;
 		linked.resize(0);
 		for (auto i : this->Linked)
 			linked.push_back(i);
+		back_link = this-> Back_link;
 		level_loot.resize(0);
 		level_entities.resize(0);
 		ground.resize(0);
@@ -156,6 +167,7 @@ void Save(Map &map_save) {
 	} else {
 		map_save.Map_set();
 //		map_save.name = s;
+		out << map_save.P;
 		out << map_save;
 		cout << "File " << s << " saved" << endl;
 	}
@@ -170,6 +182,7 @@ bool Load(string &s) {
 	if (!in.is_open()) {
 		return false;;
 	} else {
+		in >> map_save.P;
 		in >> map_save;
 		map_save.level_set();
 	}

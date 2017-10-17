@@ -1,15 +1,10 @@
 #pragma once
 #include "globals.h"
 #include "entity.h"
+#include "functions.h"
 using namespace std;
 
-int index(int x, int y) {
-	while (x < 0)x += SIZE_X;
-	while (y < 0)y += SIZE_Y;
-	if (x >= SIZE_X)x %= SIZE_X;
-	if (y >= SIZE_Y)y %= SIZE_Y;
-	return (x * SIZE_Y + y);
-}
+
 
 void weather_check() {
 

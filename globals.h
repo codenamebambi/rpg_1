@@ -158,6 +158,9 @@ const unsigned int full_pushback = 128;
 const unsigned int half_damage = 256;
 const unsigned int full_damage = 512;
 
+unsigned int mode = 0;
+const int GAME_MODE = 0;
+const int EDITOR_MODE = 1;
 
 //current frame
 unsigned long long frame = 1;
@@ -177,10 +180,9 @@ int Y_MAX = 60;
 int c_x = 0;
 int c_y = 0;
 
-string current_map_name;
-
+string current_map_name = "NULL";
 vector<string> linked;
-
+string back_link = "NULL";
 string console_input;
 string console_output;
 
