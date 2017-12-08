@@ -7,45 +7,55 @@
 #include <ctime>
 #include <queue>
 #include <set>
+#include <exception>
 #include <limits.h>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 using namespace std;
 
 
 //things with Clear_ in the name are used to check if the type is empty for a spot ie nothing in the way
 //ground values
-const unsigned int Void = 0;
-const unsigned int Dirt = 1;
-const unsigned int Grass = 2;
-const unsigned int Stone = 4;
-const unsigned int Deep_water = 8;
-const unsigned int Lava = 16;
-const unsigned int Clear_ground = Dirt | Grass | Stone | Deep_water | Lava;
+const int Void = 0;
+const int Dirt = 1;
+const int Grass = 2;
+const int Stone = 4;
+const int Deep_water = 8;
+const int Lava = 16;
+
+
+//once ice is fully implemented it should be set up in a way that flickers * over the ice spot to indicate that
+//it is ice, probably make a function called ice_visual() or something and put it in a loop with the input stuff while the game is playing
+//im thinking that it should probably move across 2 tiles in the time it would take to walk one except you are forced to glide
+const int Ice = 16777216;
+
+
+const int Clear_ground = Ice | Dirt | Grass | Stone | Deep_water | Lava;
 
 //mid values, 0 == clean mid
-const unsigned int Poison = 32;
-const unsigned int Smoke = 64;
-const unsigned int Water = 128;//esentially a puddle
-const unsigned int Steam = 256;
-const unsigned int Caltrops = 512;
-const unsigned int Ooze = 1024;
-const unsigned int Blood = 2048;
-const unsigned int Oil = 4096;
-const unsigned int Fire = 8192;
-const unsigned int Rock = 16384;
-const unsigned int Door = 32768;
-const unsigned int Wall = 65536;
-const unsigned int Tree = 131072;
-const unsigned int Entity =  262144;
+const int Poison = 32;
+const int Smoke = 64;
+const int Water = 128;//esentially a puddle
+const int Steam = 256;
+const int Caltrops = 512;
+const int Ooze = 1024;
+const int Blood = 2048;
+const int Oil = 4096;
+const int Fire = 8192;
+const int Rock = 16384;
+const int Door = 32768;
+const int Wall = 65536;
+const int Tree = 131072;
+const int Perma_fire =  262144;
 //const unsigned int Clear_mid = Entity | Fire | Poison | Smoke | Rock | Steam | Caltrops | Door | Water | Wall | Tree | Ooze | Blood | Oil;
 
 //weather values, 0 == clear weather
-const unsigned int Rain = 1048576;
-const unsigned int Sandstorm = 2097152;
-const unsigned int Winter_wonderland = 8388608 ;
-const unsigned int Ash_fall = 524288;
-const unsigned int Fog_of_war = 4194304;
+const int Rain = 1048576;
+const int Sandstorm = 2097152;
+const int Winter_wonderland = 8388608 ;
+const int Ash_fall = 524288;
+const int Fog_of_war = 4194304;
 //const unsigned int Clear_weather = ;
 
 
@@ -161,6 +171,7 @@ const unsigned int full_damage = 512;
 unsigned int mode = 0;
 const int GAME_MODE = 0;
 const int EDITOR_MODE = 1;
+bool diag_allowed =  false ;
 
 //current frame
 unsigned long long frame = 1;
@@ -171,14 +182,16 @@ const unsigned int TIMEOUT = 300;
 
 
 //board sizes subject to change
-//possibly put into main for different levels on a per level basis
-int SIZE_X = 10;
-int SIZE_Y = 25;
-int X_MAX = 30;
-int Y_MAX = 60;
+//possibly put unsigned longo main for different levels on a per level basis
+unsigned long SIZE_X = 10;
+unsigned long SIZE_Y = 25;
+unsigned long X_MAX = 30;
+unsigned long Y_MAX = 60;
+unsigned long Y_MIN = 60;
+unsigned long X_MIN = 10;
 //c coords
-int c_x = 0;
-int c_y = 0;
+unsigned long c_x = 0;
+unsigned long c_y = 0;
 
 string current_map_name = "NULL";
 vector<string> linked;
@@ -200,7 +213,7 @@ vector<char> board;
 
 
 void initialize_arrays() {
-	for (int i = 0; i < SIZE_Y * SIZE_X; i++) {
+	for (size_t i = 0; i < SIZE_Y * SIZE_X; i++) {
 		board.at(i) = ' ';
 		mid.at(i) = 0;
 		ground.at(i) = Dirt;
@@ -212,14 +225,14 @@ void initialize_arrays() {
 int index(int x, int y) {
 	while (x < 0)x += SIZE_X;
 	while (y < 0)y += SIZE_Y;
-	if (x >= SIZE_X)x %= SIZE_X;
-	if (y >= SIZE_Y)y %= SIZE_Y;
+	if (size_t(x) >= SIZE_X)x %= SIZE_X;
+	if (size_t(y) >= SIZE_Y)y %= SIZE_Y;
 	return (x * SIZE_Y + y);
 }
 
 
 
-string g, m, w, e, l; //ground mid weather entity
+string g, m, w, e, l, hp; //ground mid weather entity
 
 
 void wait_ticks(int ticks) {

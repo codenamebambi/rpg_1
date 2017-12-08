@@ -17,13 +17,19 @@ void fixed_splash() {
 }
 
 
-
-
+void clear_screen() {
+	for (size_t i = 0; i < 70; i++) {
+		for (size_t j = 0; j < 370; j++) {
+			mvaddch(i, j, ' ');
+		}
+	}
+	refresh();
+}
 
 //2d to 1d indexing
 void print_board() {
-	for (int i = 0; i < SIZE_X; i++) {
-		for (int j = 0; j < SIZE_Y; j++) {
+	for (size_t i = 0; i < SIZE_X; i++) {
+		for (size_t j = 0; j < SIZE_Y; j++) {
 			if (c_x == i  and  c_y == j)
 				attron(A_UNDERLINE | A_BOLD);
 			int color;
@@ -33,19 +39,19 @@ void print_board() {
 			attron(COLOR_PAIR(cpair(color)));
 			mvaddch(i, j, board.at(index(i, j)));
 			if (weather.at(index(i, j)) != 0) {
-//TBD handle weather and loot printing
+				//TBD handle weather and loot printing
 			}
 			for (auto k : level_entities) {
-				if (k.x == i  and  k.y == j) {
-					attron(COLOR_PAIR(cpair(Entity | ground.at(index(i, j)))));
+				if (size_t(k.x) == i  and  size_t(k.y) == j) {
+					attron(COLOR_PAIR(cpair(Steam | ground.at(index(i, j))))); //steam is used to get white fore b/c i repurposed the value of 'Entity' to 'Perma_Fire'
 					attron(A_BOLD);
 					mvaddch(i, j, k.visual);
 				}
 			}
-			if(current_player.x == i and current_player.y == j){
-				attron(COLOR_PAIR(cpair(Entity | ground.at(index(i,j)))));
+			if (size_t(current_player.x) == i and size_t(current_player.y) == j) {
+				attron(COLOR_PAIR(cpair(Steam | ground.at(index(i, j)))));//steam is used to get white fore b/c i repurposed the value of 'Entity' to 'Perma_Fire'
 				attron(A_BOLD);
-				mvaddch(i,j,current_player.visual);
+				mvaddch(i, j, current_player.visual);
 			}
 
 			attroff(COLOR_PAIR(cpair(color)));
@@ -53,6 +59,7 @@ void print_board() {
 		}
 
 	}
+	refresh();
 }
 void print_console_in(string);
 void print_console_out(string);
@@ -118,21 +125,22 @@ void at_cursor(string & n_g, string & n_m, string & n_w, string & n_e, string & 
 		n_w += "Clear";
 	}
 	n_e += "None";
-	if(current_player.x==n_c_x and current_player.y==n_c_y){
-		n_e = "Entity: "+current_player.type;
+	if (current_player.x == n_c_x and current_player.y == n_c_y) {
+		n_e = "Entity: " + current_player.type;
+	} else {
+		for (auto i : level_entities) {
+			if (i.x == n_c_x and i.y == n_c_y) {
+				n_e = "Entity: " + i.type;
+				hp = i.hp;
+				break;
+			}
 		}
-	else{
-	for (auto i : level_entities) {
-		if (i.x == n_c_x and i.y == n_c_y) {
-			n_e = "Entity: " + i.type;
-			break;
-		}
-	}
 	}
 	n_l += "False";
 	for (auto i : level_loot) {
 		if (i.x == n_c_x and i.y == n_c_y) {
 			n_l = "Loot: True";
+			hp = "";
 			break;
 		}
 	}
@@ -146,13 +154,24 @@ void at_cursor(string & n_g, string & n_m, string & n_w, string & n_e, string & 
 		n_m += " ";
 	while (n_g.size() < 19)
 		n_g += " ";
+	while (hp .size() < 19)
+		hp += " ";
+
 
 }
+void print_editor_help_menu() {
+
+
+}
+
+
+
 
 void print_editor_controls() {
 	attron(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 	mvprintw(10, SIZE_Y + 2, "**Editor Mode Enabled**");
-	mvprintw(13, SIZE_Y + 2, "The following keys will set the spot the cursor is on to that type");
+	mvprintw(13, SIZE_Y + 2, "Enter H to bring up help menu");
+	mvprintw(14, SIZE_Y + 2, "The following keys will set the spot the cursor is on to that type");
 	mvprintw(15, SIZE_Y + 2, "Ground types: d = Dirt | g = Grass | R = Stone | L = Lava | V = Void | W = Deep Water");
 	string printer = "Mid types: " + string(1, Wall_char) + " = Wall | " + string(1, Smoke_char) + " = Smoke | S = Steam | p = Poison | ^ = Fire | + = Tree";
 	mvprintw(16, SIZE_Y + 2, printer.c_str());
@@ -161,27 +180,34 @@ void print_editor_controls() {
 	printer = "Weather types:";
 	mvprintw(18, SIZE_Y + 2, printer.c_str());
 	mvprintw(19, SIZE_Y + 2, "Adding entities: ");
-	mvprintw(20, SIZE_Y + 2, "Q = Player(1 recomended) | ");
-	mvprintw(22, SIZE_Y + 2, "Enter c to clear mid, C to clear all");
+	mvprintw(20, SIZE_Y + 2, "Q = Player(1 recomended) | 1 = EyeBall");
+	mvprintw(22, SIZE_Y + 2, "Enter c to clear mid, C to clear all, and ? to clear entire board");
 	mvprintw(23, SIZE_Y + 2, "Enter \"`\" to link maps, formatted: \"name adjacent_x adjacent_y\"");
-	mvprintw(24, SIZE_Y + 2, "Enter N to name the map,  \"|\" to save the map");
+	mvprintw(24, SIZE_Y + 2, "Enter ~ to enter a back link (the previous map) | Enter ] to load a forward link and [ for back");
+	mvprintw(25, SIZE_Y + 2, "Enter N to name the map,  \"|\" to save the map, \"m\" to modify an entity");
 	printer = "Debug info: " + to_string(level_entities.size());
-	mvprintw(26, SIZE_Y + 2, printer.c_str());
+	mvprintw(27, SIZE_Y + 2, printer.c_str());
 	printer = "                                                            ";
 	if (linked.size() == 0)
 		printer = "Back link: " + back_link;
-	mvprintw(27 + linked.size() , SIZE_Y + 2, printer.c_str());
-	for (int i = 0; i < linked.size(); i++) {
-		printer = "Link " + to_string(i + 1) + ": " + linked.at(i);
+	mvprintw(28 + linked.size() , SIZE_Y + 2, printer.c_str());
+	for (size_t i = 0; i < linked.size(); i++) {
+		printer = "Link " + to_string(i) + ": " + linked.at(i);
 		if (i == 0)
 			printer += " | Back link: " + back_link;
-		mvprintw(27 + i, SIZE_Y + 2, printer.c_str());
+		mvprintw(28 + i, SIZE_Y + 2, printer.c_str());
 	}
 	attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 
 }
+void debug_window(string message, int x) {
 
+	attron(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
+	string printer = "Debug info: " + message;
+	mvprintw(30 + x, SIZE_Y + 2, printer.c_str());
+	attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 
+}
 void always_print() {
 	print_board();
 	attron(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
@@ -189,6 +215,9 @@ void always_print() {
 	mvprintw(3, SIZE_Y + 2, "s = Steam |");
 	mvprintw(9, SIZE_Y + 2, "Some ground colors may be changed if the item on it is assigned the same color so be concious of it");
 	string temp = "Map: " + current_map_name + " |  X: " + to_string(c_x) + " Y: " + to_string(c_y);
+	string hp_text;
+	while (hp_text.size() < SIZE_Y)
+		hp_text += " ";
 	while (temp.size() < SIZE_Y)
 		temp += " ";
 	mvprintw(SIZE_X + 1, 1, temp.c_str());
@@ -261,10 +290,10 @@ void always_print() {
 	mvprintw(4, SIZE_Y + 25, " ");
 	attroff(COLOR_PAIR(cpair(COLOR_RED, COLOR_RED)));
 	attron(COLOR_PAIR(cpair(COLOR_YELLOW, COLOR_BLACK)));
-	for (int i = 0; i <= SIZE_X; i++) {
+	for (size_t  i = 0; i <= SIZE_X; i++) {
 		mvprintw(i, SIZE_Y, "*");
 	}
-	for (int i = 0; i < SIZE_Y; i++) {
+	for (size_t i = 0; i < SIZE_Y; i++) {
 		mvprintw(SIZE_X, i, "*");
 	}
 	attroff(COLOR_PAIR(cpair(COLOR_YELLOW, COLOR_BLACK)));
@@ -274,7 +303,7 @@ void always_print() {
 }
 //returns 1 when continuing to work and 3 if '\n' is read and 2 if the esc key is pressed
 int typing(int input) {
-	if (isalnum(input) || input == ' ') {
+	if (isalnum(input) || input == ' ' || input == '_') {
 		console_input.push_back(char(input));
 		if (console_input.size() > SIZE_Y)
 			console_input.pop_back();
@@ -294,9 +323,36 @@ int typing(int input) {
 	return 0;
 }
 
+// should have print_console_in(""); following the call
+string type() {
+	int c_in = 0;
+	while (true) {
+		int break_check = false;
+		int ch = getch();
+		c_in = typing(ch);
+		if (c_in == 1)
+			;
+		else if (c_in == 2) {
+			for (auto i : console_input) {
+				if (!isalnum(i) || i == ' ') {
+					print_console_out("Invalid input");
+					print_console_in("");
+					break_check = true;
+					break;
+				}
+			}
+			if (break_check)break;
+			return console_input;
+		} else
+			break;
+		print_console_in(console_input);
+		refresh();
+	}
+	return "";
+}
 void print_console_in(string input) {
 	attron(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
-	for (int i = 0; i < console_input.size(); i++)
+	for (size_t i = 0; i < console_input.size(); i++)
 		console_input.at(i) = ' ';
 	mvprintw(SIZE_X + 10 , 1, console_input.c_str());
 	console_input = input;
@@ -308,7 +364,7 @@ void print_console_in(string input) {
 
 void print_console_out(string output) {
 	attron(COLOR_PAIR(cpair(COLOR_BLACK, COLOR_WHITE)));
-	for (int i = 0; i < console_output.size(); i++) {
+	for (size_t i = 0; i < console_output.size(); i++) {
 		console_output.at(i) = ' ';
 	}
 	mvprintw(SIZE_X + 9 , 1, console_output.c_str());
@@ -316,6 +372,3 @@ void print_console_out(string output) {
 	mvprintw(SIZE_X + 9 , 1, console_output.c_str());
 	attroff(COLOR_PAIR(cpair(COLOR_BLACK, COLOR_WHITE)));
 }
-
-
-

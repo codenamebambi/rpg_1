@@ -6,7 +6,6 @@
 using namespace std;
 
 
-
 class Map {
   public:
 	string name = "NULL";
@@ -45,6 +44,7 @@ class Map {
 		this->Loot.merge(rhs.Loot);
 		this->Entities.resize(0);
 		this->Entities.merge(rhs.Entities);
+		return *this;
 	}
 	friend ostream& operator<<(ostream& os, const Map &rhs) {
 		os << rhs.name << endl;
@@ -66,6 +66,7 @@ class Map {
 		os << rhs.Entities.size() << endl;
 		for (auto i : rhs.Entities)
 			os << i;
+		return os;
 	}
 	friend istream& operator>>(istream& is, Map &rhs) {
 		int temp = 0;
@@ -76,7 +77,7 @@ class Map {
 			for (int j = 0; j < 3; j++) {
 				string temp_input;
 				is >> temp_input;
-				i += temp_input;
+				i += temp_input + " ";
 			}
 		}
 		is >> rhs.Back_link;
@@ -100,6 +101,7 @@ class Map {
 		rhs.Entities.resize(temp);
 		for (auto & i : rhs.Entities)
 			is >> i;
+		return is;
 	}
 	void Map_set() {
 		this->name = current_map_name;
@@ -160,20 +162,23 @@ class Map {
 
 void Save(Map &map_save) {
 	fstream out;
-	string s;
-	cout << "Please enter a name for this level" << endl;
-	cin.ignore();
-	getline(cin, s);
+	string s = map_save.name;
+	/*
+	   cout << "Please enter a name for this level" << endl;
+	   cin.ignore();
+	   getline(cin, s);
+	   */
 	out.open(s, fstream::out);
 	if (!out.is_open()) {
 		cout << "Failed to open " << s << endl;
 		return;
 	} else {
 		map_save.Map_set();
-//		map_save.name = s;
+		//		map_save.name = s;
 		out << map_save.P;
 		out << map_save;
-		cout << "File " << s << " saved" << endl;
+		string temp = "File " + s + " saved";
+		print_console_out(temp);
 	}
 	out.close();
 }
@@ -184,11 +189,12 @@ bool Load(string &s) {
 	fstream in;
 	in.open(s);
 	if (!in.is_open()) {
-		return false;;
+		return false;
 	} else {
 		in >> map_save.P;
 		in >> map_save;
 		map_save.level_set();
+		clear_screen();
 	}
 	in.close();
 	return true;
@@ -230,32 +236,9 @@ bool Load_link(int &in_x, int &in_y) {
 
 void modify_map_name() {
 	print_console_out("Please enter a name");
-	int c_in = 0;
-	while (true) {
-		int break_check = false;
-		int ch = getch();
-		c_in = typing(ch);
-		if (c_in == 1)
-			;
-		else if (c_in == 2) {
-			for (auto i : console_input) {
-				if (!isalnum(i) || i == ' ') {
-					print_console_out("Invalid input");
-					print_console_in("");
-					break_check = true;
-					break;
-				}
-			}
-			if (break_check)break;
-			current_map_name = console_input;
-			print_console_out("Name set");
-			print_console_in("");
-			break;
-		} else
-			break;
-		print_console_in(console_input);
-		refresh();
-	}
+	current_map_name = type();
+	print_console_in("");
+	print_console_out("Name set");
 }
 
 void modify_map_links() {
@@ -303,7 +286,6 @@ void remove_link() {
 	print_console_out("Type yes to remove last link");
 	int c_in = 0;
 	while (true) {
-		bool break_check = false;
 		int ch = getch();
 		c_in = typing(ch);
 		if (c_in == 1)
@@ -317,7 +299,7 @@ void remove_link() {
 				temp = "Link " + to_string(linked.size() + 1) + " removed";
 			} else
 				temp = "Link " + to_string(linked.size()) + " left alone";
-			print_console_out(temp.c_str());
+			print_console_out(temp);
 			print_console_in("");
 			break;
 		} else
@@ -360,8 +342,7 @@ void modify_back_link() {
 			if (break_check) break;
 			back_link = console_input;
 			temp = "Back link set";
-			print_console_out(temp.c_str());
-			console_input = "";
+			print_console_out(temp);
 			print_console_in("");
 			break;
 		} else
@@ -369,9 +350,6 @@ void modify_back_link() {
 		print_console_in(console_input);
 		refresh();
 	}
-
+	print_console_in("");
 }
 
-
-void modify_entities() {
-}

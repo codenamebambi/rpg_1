@@ -4,30 +4,36 @@
 using namespace std;
 
 
-int pair_count = 0;
+int pair_count = 1;
 
 
 void initialize_colors() {
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
+	for (short  i = 0; i < 8; i++) {
+		for (short j = 0; j < 8; j++) {
 			init_pair(pair_count++, j, i);
 		}
 	}
 }
 short cpair(short wanted_fore, short wanted_back) {
-	short fore, back;
-	for (int i = 0; i < pair_count; i++) {
+	short fore = 0, back = 0;
+	for (short i = 0; i < pair_count; i++) {
 		pair_content(i, &fore, &back);
 		if (fore == wanted_fore and back == wanted_back) {
 			return i;
 		}
 	}
+	throw runtime_error(" color " + to_string(wanted_fore) + " " + to_string(wanted_back));
+	return -1;
 }
 
 short cpair(int x) {
-	short fore, back;
+	short fore = COLOR_BLACK;
+	short back = COLOR_BLACK;
 
-	if (Void == x) {
+	if (Ice == x) {
+		fore = COLOR_BLUE;
+		back = COLOR_WHITE;
+	} else if (Void == x) {
 		fore = COLOR_BLACK;
 		back = COLOR_BLACK;
 	} else if (Grass == x) {
@@ -84,8 +90,8 @@ short cpair(int x) {
 	} else if ((Fire |  Grass) == x) {
 		fore = COLOR_RED;
 		back = COLOR_GREEN;
-	} else if ((Entity |  Grass) == x) {
-		fore = COLOR_WHITE;
+	} else if ((Perma_fire |  Grass) == x) {
+		fore = COLOR_RED;
 		back = COLOR_GREEN;
 	} else if ((Poison |  Dirt) == x) {
 		fore = COLOR_MAGENTA;
@@ -126,8 +132,8 @@ short cpair(int x) {
 	} else if ((Fire |  Dirt) == x) {
 		fore = COLOR_RED;
 		back = COLOR_YELLOW;
-	} else if ((Entity |  Dirt) == x) {
-		fore = COLOR_WHITE;
+	} else if ((Perma_fire |  Dirt) == x) {
+		fore = COLOR_RED;
 		back = COLOR_YELLOW;
 	} else if ((Poison |  Stone) == x) {
 		fore = COLOR_MAGENTA;
@@ -168,8 +174,8 @@ short cpair(int x) {
 	} else if ((Fire |  Stone) == x) {
 		fore = COLOR_RED;
 		back = COLOR_WHITE;
-	} else if ((Entity |  Stone) == x) {
-		fore = COLOR_BLACK;
+	} else if ((Perma_fire |  Stone) == x) {
+		fore = COLOR_RED;
 		back = COLOR_WHITE;
 	} else if ((Poison |  Deep_water) == x) {
 		fore = COLOR_MAGENTA;
@@ -210,9 +216,9 @@ short cpair(int x) {
 	} else if ((Fire |  Deep_water) == x) {
 		fore = COLOR_RED;
 		back = COLOR_CYAN;
-	} else if ((Entity |  Deep_water) == x) {
-		fore = COLOR_WHITE;
-		back = COLOR_RED;
+	} else if ((Perma_fire |  Deep_water) == x) {
+		fore = COLOR_RED;
+		back = COLOR_CYAN;
 	} else if ((Poison |  Lava) == x) {
 		fore = COLOR_MAGENTA;
 		back = COLOR_RED;
@@ -252,8 +258,8 @@ short cpair(int x) {
 	} else if ((Fire |  Lava) == x) {
 		fore = COLOR_RED;
 		back = COLOR_RED;
-	} else if ((Entity |  Lava) == x) {
-		fore = COLOR_WHITE;
+	} else if ((Perma_fire |  Lava) == x) {
+		back = COLOR_RED;
 		back = COLOR_RED;
 	} else if ((Poison |  Void) == x) {
 		fore = COLOR_MAGENTA;
@@ -294,10 +300,11 @@ short cpair(int x) {
 	} else if ((Fire |  Void) == x) {
 		fore = COLOR_RED;
 		back = COLOR_BLACK;
-	} else if ((Entity |  Void) == x) {
-		fore = COLOR_WHITE;
+	} else if ((Perma_fire |  Void) == x) {
+		back = COLOR_RED;
 		back = COLOR_BLACK;
 	}
+
 	return cpair(fore, back);
 }
 

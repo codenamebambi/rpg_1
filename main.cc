@@ -13,7 +13,7 @@ void startup() {
 	cout << "Please enter a mode, either Game or Editor" << endl;
 	cin >> user_input;
 	while (true) {
-		for (int i = 0; i < user_input.size(); i++) {
+		for (size_t i = 0; i < user_input.size(); i++) {
 			user_input.at(i) = toupper(user_input.at(i));
 		}
 		if (user_input == "GAME") {
@@ -33,7 +33,7 @@ void startup() {
 		cout << "Type Load if you are loading an existing map, type New if you are making one from scratch" << endl;
 		cin >> user_input;
 		while (true) {
-			for (int i = 0; i < user_input.size(); i++) {
+			for (size_t i = 0; i < user_input.size(); i++) {
 				user_input.at(i) = toupper(user_input.at(i));
 			}
 loop_start:
@@ -59,32 +59,32 @@ loop_start:
 			} else if (user_input == "NEW") {
 
 				cout << "Please enter the board size formatted like so: X_max  Y_Max " << endl;
-				cin >> y >> x;
+				cin >> x >> y;
 
 				while (true) {
-					if (x < 10  or  y < 25 or !cin) {
+					if (size_t (y) < Y_MIN  or  size_t(x) < X_MIN or !cin) {
 						string s;
 						cin.clear();
 						getline(cin, s);
-						cout << "Please Enter Valid maxes (X_min=25, Y_min=10): " << endl;
-						cin >> y >> x;
+						cout << "Please Enter Valid maxes (X_MIN=" + to_string(X_MIN) + "," + " Y_MIN=" + to_string(Y_MIN) + "):"   << endl;
+						cin >> x >> y;
 
-					} else if (x > X_MAX or y > Y_MAX) {
-						if (x > Y_MAX) {
+					} else if (size_t(x) > X_MAX or  size_t(y) > Y_MAX) {
+						if (size_t(x) > X_MAX) {
 							cout << "Over max x length, setting to X_max to max possible" << endl;
-							SIZE_X = X_MAX;
+							x = X_MAX;
 						}
-						if (y > Y_MAX) {
+						if (size_t(y) > Y_MAX) {
 							cout << "Over max y length, setting to Y_max to max possible" << endl;
-							SIZE_Y = Y_MAX;
+							y = Y_MAX;
 						}
 						break;
 					} else {
-						SIZE_X = x;
-						SIZE_Y = y;
 						break;
 					}
 				}
+				SIZE_X = x;
+				SIZE_Y = y;
 				board.resize(SIZE_X * SIZE_Y);
 				mid.resize(SIZE_X * SIZE_Y);
 				ground.resize(SIZE_X * SIZE_Y);
@@ -145,16 +145,16 @@ int main() {
 		int ch = getch();
 		/*else*/ if (ch == KEY_RIGHT) {
 			c_y++;
-			if (c_y >= SIZE_Y) c_y = SIZE_Y - 1; //Clamp value
+			if (c_y >= SIZE_Y) c_y --; //Clamp value
 		} else if (ch == KEY_LEFT or ch == KEY_SLEFT) {
-			c_y--;
-			if (c_y < 0) c_y = 0;
-		} else if (ch == KEY_UP) {  //Should be KEY_UP, grr
-			c_x--;
-			if (c_x < 0) c_x = 0;
+			if (!(c_y == 0))
+				c_y--;
+		} else if (ch == KEY_UP) {
+			if (!(c_x == 0))
+				c_x--;
 		} else if (ch == KEY_DOWN) {
 			c_x++;
-			if (c_x >= SIZE_X) c_x = SIZE_X - 1; //Clamp value
+			if (c_x >= SIZE_X) c_x --;
 		} else if (ch == ERR) { //No keystroke
 			; //Do nothing
 		} else if (ch == '\n') {
@@ -168,7 +168,10 @@ int main() {
 				attroff(COLOR_PAIR(cpair(COLOR_WHITE, COLOR_BLACK)));
 				terrain_on_terrain_check();
 				wait_ticks(300000);
-
+				for (auto && i : level_entities) {
+					i.move(i.astar(current_player.x, current_player.y, 1));
+					//i.move_rand();
+				}
 
 
 
@@ -218,16 +221,14 @@ int main() {
 				} else if (ch == 'v') {
 					mid.at(index(c_x, c_y)) = 0;
 				} else if (ch == '|') {
-					endwin();
-					system("clear");
+					if (current_map.name.size() < 1)print_console_out("Please enter a valid map name");
 					current_map.Map_set();
 					Save(current_map);
-					return 0;
 				} else if (ch == '1') {
 					entity_push(entity(c_x, c_y)); //needs to be entity_push(entity(c_x,c_y))
 				} else if (ch == 'Q') {
-						current_player.x = c_x;
-						current_player.y = c_y;
+					current_player.x = c_x;
+					current_player.y = c_y;
 				} else if (ch == 'C') {
 					mid.at(index(c_x, c_y)) = 0;
 					ground.at(index(c_x, c_y)) = Void;
@@ -244,6 +245,50 @@ int main() {
 					modify_map_name();
 				} else if (ch == KEY_BACKSPACE) {
 					remove_link();
+				} else if (ch == 'H') {
+					print_editor_help_menu();
+				} else if (ch == '2') {
+					entity_push(eyeball(c_x, c_y));
+				} else if (ch == '?') {
+					clear_board();
+				} else if (ch == 'm') {
+					modify_entity(c_x, c_y);
+				} else if (ch == '[') {
+					string temp =  back_link;
+					if (!Load(temp)) {
+						print_console_out("Failed to load back link");
+					}
+				} else if (ch == ']') {
+					print_console_out("Please enter a link index");
+					string temp = type();
+					print_console_in("");
+					string temp2;
+					bool check = true;
+					for (auto i : temp)
+						if (! isdigit(i)) {
+							print_console_out("Not a valid index");
+							check = false;
+						}
+					try {
+						int index = stoi(temp);
+						temp2 = linked.at(index);
+					} catch (out_of_range e) {
+						print_console_out("Not a valid index");
+						check = false;
+						debug_window(e.what(), 5);
+					}
+					if (check) {
+						for (size_t i = 0 ; i < temp2.size(); i++)
+							if (temp2.at(i) == ' ') {
+								temp2.resize(i);
+								break;
+							}
+
+						if (!Load(temp2)) {
+							debug_window(temp2, 1);
+							print_console_out("Not a valid link, check details");
+						}
+					}
 				}
 			}
 		}

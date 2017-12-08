@@ -6,4 +6,5 @@ format:
 	reformat ./*.h ./*.cc
 	g++ -std=c++11 -g main.cc -lncurses
 clean:
-	rm ./a.out ./*.gch
+	rm ./a.out
+	#rm ./*.gch
